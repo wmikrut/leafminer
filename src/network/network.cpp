@@ -232,6 +232,12 @@ void response(std::string r)
     const char *type = responseType(json);
     l_info(TAG_NETWORK, "<<< [%s] %s", type, r.c_str());
 
+    //WWM 20240322B Begin
+	#if defined(ESP8266)
+    	ESP.wdtFeed();
+	#endif // ESP8266
+    //WWM 20240322B End
+
     if (strcmp(type, "subscribe") == 0)
     {
         const cJSON *result = cJSON_GetObjectItem(json, "result");
