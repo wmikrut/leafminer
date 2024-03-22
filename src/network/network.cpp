@@ -12,6 +12,14 @@
 #include "current.h"
 #include "model/configuration.h"
 
+//WWM.20240322A-Begin
+#if defined(ESP8266)
+#if !defined(HAS_LCD)
+	#include "utils/blink.h"
+#endif // HAS_LCD
+#endif // (ESP8266)
+//WWM.20240322A-End
+
 #define NETWORK_BUFFER_SIZE 2048
 #define NETWORK_TIMEOUT 1000 * 60
 #define NETWORK_DELAY 1222
@@ -303,6 +311,13 @@ void response(std::string r)
     {
         l_info(TAG_NETWORK, "Share accepted");
         current_increment_hash_accepted();
+        //WWM.20240322A-Begin
+		#if defined(ESP8266)
+			#if !defined(HAS_LCD)
+        		Blink::getInstance().blink(BLINK_SUBMIT);
+			#endif // HAS_LCD
+		#endif // (ESP8266)
+        //WWM.20240322A-End
     }
     else if (strcmp(type, "mining.submit.difficulty_too_low") == 0)
     {
