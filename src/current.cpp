@@ -30,6 +30,10 @@ double current_hashrate = 0;
 uint64_t current_uptime = millis();
 uint64_t current_last_hash = millis();
 
+//WWM 20240322C Begin
+uint8_t current_queued = 0;
+//WWM 20240322C Begin
+
 /**
  * @brief Increments the count of processed jobs.
  */
@@ -73,6 +77,9 @@ void current_setJob(const Notification &notification)
     if (notification.clean_jobs)
     {
         current_job_is_valid = 0;
+        //WWM 20240322C Begin
+        current_queued = 0;
+        //WWM 20240322C End
         if (current_job != nullptr)
         {
             l_debug(TAG_CURRENT, "Job: %s is cleaned and replaced with %s", current_job->job_id.c_str(), notification.job_id.c_str());
@@ -80,8 +87,21 @@ void current_setJob(const Notification &notification)
     }
     if (current_job_is_valid == 1)
     {
+    	//WWM 20240322C Begin
+		#if defined(ESP8266)
+        	if ( current_queued != 0 )
+        	{
+        		l_info(TAG_CURRENT, "Job: Work already in queue.");
+        		return;
+        	}
+        #endif // ESP8266
+        //WWM 20240322C End
+
         current_job_next = new Job(notification, *current_subscribe, current_difficulty);
         l_info(TAG_CURRENT, "Job: %s queued", current_job_next->job_id.c_str());
+        //WWM 20240322C Begin
+        current_queued = 1;
+        //WWM 20240322C End
         return;
     }
     current_job = new Job(notification, *current_subscribe, current_difficulty);
