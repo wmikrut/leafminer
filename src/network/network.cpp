@@ -347,9 +347,6 @@ void response(std::string r)
                 current_job = current_job_next;
                 current_job_next = nullptr;
                 current_job_is_valid = 1;
-                //WWM 20240322C Begin
-                current_queued = 0;
-                //WWM 20240322C End
                 l_debug(TAG_NETWORK, "Job (next): %s ready to be mined", current_job->job_id.c_str());
                 current_increment_processedJob();
             }

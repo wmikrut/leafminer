@@ -9,9 +9,6 @@
 extern Job *current_job;
 extern Job *current_job_next;
 extern uint16_t current_job_is_valid;
-//WWM 20240322C - Begin
-extern uint8_t current_queued;
-//WWM 20240322C - End
 
 const uint32_t current_get_job_processed();
 const bool current_hasJob();
