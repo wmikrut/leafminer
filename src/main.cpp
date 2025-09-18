@@ -13,7 +13,7 @@
 #include "storage/storage.h"
 #include "network/autoupdate.h"
 #include "massdeploy.h"
-#include <esp_task_wdt.h>
+#include <ESP8266WiFi.h>
 
 #if defined(HAS_LCD)
 #include "screen/screen.h"
@@ -23,14 +23,15 @@ char TAG_MAIN[] = "Main";
 Configuration configuration;
 
 void setup()
-{
+{  
   Serial.begin(115200);
   delay(1500);
-  vTaskPrioritySet(NULL, 1);
+  Serial.printf("Boot reason: %d\n", ESP.getResetReason().c_str());
   l_info(TAG_MAIN, "LeafMiner - v.%s - (C: %d)", _VERSION, CORE);
   l_info(TAG_MAIN, "Compiled: %s %s", __DATE__, __TIME__);
   l_info(TAG_MAIN, "Free memory: %d", ESP.getFreeHeap());
-
+  
+  
 #if defined(ESP32)
   l_info(TAG_MAIN, "Chip Model: %s - Rev: %d", ESP.getChipModel(), ESP.getChipRevision());
   l_info(TAG_MAIN, "Chip ID: %lld", ESP.getEfuseMac());
@@ -84,14 +85,11 @@ void setup()
 
 #if defined(ESP32)
   btStop();
-  esp_task_wdt_init(900, true);
-  // Idle task that would reset WDT never runs, because core 0 gets fully utilized
-  disableCore0WDT();
-  //xTaskCreatePinnedToCore(currentTaskFunction, "stale", 1024, NULL, 2, NULL, 1);
-  //xTaskCreate(networkTaskFunction, "network", 6000, NULL, 2, NULL);
-  xTaskCreatePinnedToCore(mineTaskFunction, "miner0", 6000, (void *)0, 2, NULL, 1);
+  xTaskCreatePinnedToCore(currentTaskFunction, "stale", 1024, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(buttonTaskFunction, "button", 1024, NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(mineTaskFunction, "miner0", 6000, (void *)0, 10, NULL, 1);
 #if CORE == 2
-  xTaskCreatePinnedToCore(mineTaskFunction, "miner1", 6000, (void *)1, 2, NULL, 0);
+  xTaskCreatePinnedToCore(mineTaskFunction, "miner1", 6000, (void *)1, 11, NULL, 1);
 #endif
 #elif defined(ESP8266)
   network_listen();
@@ -107,15 +105,43 @@ void loop()
   }
 
 #if defined(ESP8266)
+  // static uint32_t lastNetworkCheck = 0;
+  // uint32_t now = millis();
+
+  // // If no current job, actively (re)handshake now.
+  // if (!current_hasJob()) {
+  //   network_getJob();     // ensures isConnected() + handshake
+  //   network_listen();     // pump responses immediately
+  //   delay(200);           // small backoff to avoid tight loop
+  //   return;               // don't call miner() until we actually *have* a job
+  // }
+
+  // // Alle 5 Sekunden versuchen, neue Daten zu empfangen
+  // if (now - lastNetworkCheck > 1000)
+  // {
+  //   if (WiFi.status() == WL_CONNECTED)
+  //   {
+  //     network_listen();
+  //   }
+  //   else
+  //   {
+  //     l_info(TAG_MAIN, "WiFi not connected. Trying to reconnect...");
+  //     WiFi.reconnect();  // oder besser: isConnected() erneut aufrufen
+  //   }
+  //   lastNetworkCheck = now;
+  // }
+
+  // // Miner regelmäßig laufen lassen
+  // miner(0);
+  // Pump network on every iteration so we never fall behind on notifies
+  if (WiFi.status() == WL_CONNECTED) {
+    network_listen();
+  } else {
+    l_info(TAG_MAIN, "WiFi not connected. Trying to reconnect...");
+    isConnected(); // handles WiFi and TCP reconnect
+  }
   miner(0);
 #endif // ESP8266
-#if defined(ESP32)
-  //network_submit_all();
-  //network_listen();
-  //if(current_getDifficulty()> DIFFICULTY)
-  //      difficulty();
-  vTaskDelay(1000);
-#endif
 }
 
 #endif

@@ -28,7 +28,7 @@ struct Configuration
         l_info(TAG_CONFIGURATION, "wallet_address: %s", wallet_address.c_str());
         l_info(TAG_CONFIGURATION, "pool_password: %s", pool_password.c_str());
         l_info(TAG_CONFIGURATION, "pool_url: %s", pool_url.c_str());
-        l_info(TAG_CONFIGURATION, "pool_port: %d", std::to_string(pool_port).c_str());
+        l_info(TAG_CONFIGURATION, "pool_url: %s", pool_url.c_str());
         l_info(TAG_CONFIGURATION, "blink_enabled: %s", blink_enabled.c_str());
         l_info(TAG_CONFIGURATION, "blink_brightness: %s", std::to_string(blink_brightness).c_str());
         l_info(TAG_CONFIGURATION, "lcd_on_start: %s", lcd_on_start.c_str());

@@ -1,6 +1,21 @@
 #ifndef CURRENT_H
 #define CURRENT_H
 
+#pragma once
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void current_increment_hashes_by(uint32_t n);
+void current_increment_hashes(void);
+uint64_t current_get_hashes_total(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 #include "model/job.h"
 #include "model/subscribe.h"
 #include "model/notification.h"
@@ -11,6 +26,9 @@ extern Job *current_job;
 extern Job *current_job_next;
 #endif
 extern uint16_t current_job_is_valid;
+
+
+
 
 void current_setJob(const Notification &notification);
 const char *current_getJobId();
@@ -34,5 +52,10 @@ void current_increment_hashes();
 void current_update_hashrate();
 void current_check_stale();
 bool current_hasJob();
+
+// Declaration for ESP32 specific task function
+#if defined(ESP32)
+void currentTaskFunction(void *pvParameters);
+#endif
 
 #endif
